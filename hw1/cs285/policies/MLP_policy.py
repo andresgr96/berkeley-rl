@@ -129,7 +129,7 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         mean = self.mean_net(observation)
         dist = distributions.Normal(mean, torch.exp(self.logstd))
 
-        raise dist
+        return dist
 
     def update(self, observations, actions):
         """
@@ -157,3 +157,10 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
         }
+    
+    def get_action(self, obs: np.ndarray) -> np.ndarray:
+        obs = ptu.from_numpy(obs)
+        with torch.no_grad():
+            action_distribution = self.forward(obs)
+            action = action_distribution.rsample()
+        return ptu.to_numpy(action)
